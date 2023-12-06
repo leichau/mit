@@ -26,16 +26,19 @@ class Mit:
         # 移除不需要的目录
         topfile.remove('.mit')
         topfile.remove('.git')
-        print('Top file =', topfile)
-        filelist = []
-        # for file in topfile:
-        #     if os.path.isfile(file):
-        #         filelist.append(file)
-        #     else:
 
+        filelist = []
         for file in topfile:
             path = os.path.join(self.cwd, file)
-            os.path.walk(path, self.file_obj, 0)
+            filelist.append(path)
+            if os.path.isdir(path):
+                for root, dirs, files in os.walk(path, topdown=True):
+                    for name in files:
+                        filelist.append(os.path.join(root, name))
+                    for name in dirs:
+                        filelist.append(os.path.join(root, name))
+        for item in filelist:
+            print(item)
     
     # 处理忽略文件
     def ignore(self):
@@ -71,7 +74,7 @@ class Mit:
         return filename, filehash
     
     # 创建文件对象，记录其内容摘要
-    def file_obj(self, args, dir, file):
+    def file_obj(self, file):
         if os.path.isfile(file):
             filename, filehash = self.file_info(file)
         elif not len(os.listdir(file)):
