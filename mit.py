@@ -20,6 +20,14 @@ class Mit:
             func(self, *args, **kwargs)
         return decorator
 
+    def init(self):
+        files = os.listdir(self.cwd)
+        if '.mit' in files:
+            path = os.path.join(self.cwd, '.mit')
+            print('Reinitialized existing Mit repository in', path)
+        else:
+            pass
+
     @mcheck
     def status(self):
         topfile = os.listdir(self.cwd)
