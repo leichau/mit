@@ -25,26 +25,18 @@ class Mit:
         if '.mit' in files:
             path = os.path.join(self.cwd, '.mit')
             print('Reinitialized existing Mit repository in', path)
+            return
         else:
-            pass
+            os.mkdir('.mit')
+            os.mkdir('.mit\objects')
+        
+        filelist = self.file_list(self.cwd)
+        for item in filelist:
+            self.file_obj(item)
 
     @mcheck
     def status(self):
-        topfile = os.listdir(self.cwd)
-        # 移除不需要的目录
-        topfile.remove('.mit')
-        topfile.remove('.git')
-
-        filelist = []
-        for file in topfile:
-            path = os.path.join(self.cwd, file)
-            filelist.append(path)
-            if os.path.isdir(path):
-                for root, dirs, files in os.walk(path, topdown=True):
-                    for name in files:
-                        filelist.append(os.path.join(root, name))
-                    for name in dirs:
-                        filelist.append(os.path.join(root, name))
+        filelist = self.file_list(self.cwd)
         for item in filelist:
             print(item)
     
@@ -70,6 +62,24 @@ class Mit:
         print(xx.hexdigest())
         return xx.hexdigest()
     
+    def file_list(self, path):
+        topfile = os.listdir(path)
+        # 移除不需要的目录
+        topfile.remove('.mit')
+        topfile.remove('.git')
+
+        filelist = []
+        for file in topfile:
+            path = os.path.join(self.cwd, file)
+            filelist.append(path)
+            if os.path.isdir(path):
+                for root, dirs, files in os.walk(path, topdown=True):
+                    for name in files:
+                        filelist.append(os.path.join(root, name))
+                    for name in dirs:
+                        filelist.append(os.path.join(root, name))
+        return filelist
+
     # 返回文件路径摘要及其内容摘要
     def file_info(self, path):
         filename = xxhash.xxh128_hexdigest(path)
