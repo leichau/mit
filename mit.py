@@ -52,14 +52,12 @@ class Mit:
     def fdigest(self, path):
         if not os.path.exists(path):
             path = './mit.py'
-        print(path)
         xx = xxhash.xxh128()
         with open(path,'rb' ) as f:
             data = f.read(10240)
             while data:
                 xx.update(data)
                 data = f.read(10240)
-        print(xx.hexdigest())
         return xx.hexdigest()
     
     def file_list(self, path):
@@ -89,6 +87,8 @@ class Mit:
         else:
             # 文件夹为其路径摘要
             filehash = filename
+        print(path)
+        print(filename, filehash)
         return filename, filehash
     
     # 创建文件对象，记录其内容摘要
