@@ -99,6 +99,8 @@ class Mit:
             filename, filehash = self.file_info(file)
         else:
             return
+        # 添加路径长度目录，降低哈希碰撞
+        # TODO
         filename = os.path.join(self.cwd, '.mit', 'objects', filename)
         with open(filename,'w' ) as f:
             f.write(filehash)
