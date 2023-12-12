@@ -1,4 +1,6 @@
-import os
+# -*- coding: utf-8 -*-
+
+import os, time
 import fire, xxhash, json
 
 from functools import wraps
@@ -52,33 +54,37 @@ class Mit:
 
     # 返回文件路径摘要及其内容摘要
     def file_info(self, path):
-        filename = xxhash.xxh128_hexdigest(path)
+        objname = xxhash.xxh128_hexdigest(path)
         if os.path.isfile(path):
             # 文件为其内容摘要
             filehash = self.file_digest(path)
         else:
             # 文件夹为其路径摘要
-            filehash = filename
+            filehash = objname
         print(path)
-        print(filename, filehash)
-        return filename, filehash
+        # print(objname, filehash)
+        return objname, filehash
     
     # 创建文件对象，记录其内容摘要
     def file_obj(self, file):
         if os.path.isfile(file):
-            filename, filehash = self.file_info(file)
+            objname, filehash = self.file_info(file)
         elif not len(os.listdir(file)):
-            filename, filehash = self.file_info(file)
+            objname, filehash = self.file_info(file)
         else:
             return
         # 添加路径长度目录，降低哈希碰撞
         # TODO
-        filename = os.path.join(self.cwd, '.mit', 'objects', filename)
+        objname = os.path.join(self.cwd, '.mit', 'objects', objname)
+        msecs = os.path.getmtime(file)
+        mtime = time.ctime(os.path.getmtime(file))
         file_info = {}
-        file_info['path'] = file
+        file_info['path'] = os.path.relpath(file, self.cwd)
+        file_info['secs'] = msecs
+        file_info['time'] = mtime
         file_info['hash'] = filehash
-        file_json = json.dumps(file_info, indent = 4)
-        with open(filename,'w' ) as f:
+        file_json = json.dumps(file_info, indent = 4, ensure_ascii = False)
+        with open(objname, 'w') as f:
             f.write(file_json)
             # f.write(filehash)
 
@@ -101,7 +107,16 @@ class Mit:
         filelist = self.file_list(self.cwd)
         for item in filelist:
             print(item)
+            print(os.path.getctime(item), time.ctime(os.path.getctime(item)))
+            print(os.path.getmtime(item), time.ctime(os.path.getmtime(item)))
+            print(os.path.getatime(item), time.ctime(os.path.getatime(item)))
     
+    @mcheck
+    def fresh(self):
+        filelist = self.file_list(self.cwd)
+        for item in filelist:
+            self.file_obj(item)
+
     # 处理忽略文件
     def ignore(self):
         if not os.path.exists('.mitignore'):
