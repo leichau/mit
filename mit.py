@@ -65,6 +65,15 @@ class Mit:
         # print(objname, filehash)
         return objname, filehash
     
+    def file_path_info(self, path):
+        pathHash = xxhash.xxh128_hexdigest(path)
+        file_info = {}
+        file_info['path'] = path
+        file_info['time'] = os.path.getmtime(path)
+        file_info['hash'] = pathHash
+        file_json = json.dumps(file_info, indent = 4, ensure_ascii = False)
+        return file_json
+    
     # 创建文件对象，记录其内容摘要
     def file_obj(self, file):
         if os.path.isfile(file):
@@ -88,6 +97,13 @@ class Mit:
             f.write(file_json)
             # f.write(filehash)
 
+    def obj_file_info(self, obj_path):
+        with open(obj_path, 'r') as f:
+            obj = f.read()
+        file_json = json.loads(obj)
+        print(file_json)
+        return file_json
+
     def init(self):
         files = os.listdir(self.cwd)
         if '.mit' in files:
@@ -104,7 +120,27 @@ class Mit:
 
     @mcheck
     def status(self):
+        # 获取文件信息列表
         filelist = self.file_list(self.cwd)
+        fileJsonList = []
+        for item in filelist:
+            fileJsonList.append(self.file_path_info(item))
+        # 获取版本信息列表
+        objlist  = os.listdir('/.mit/objects/')
+        if len(objlist) == 0:
+            return
+        objJsonList = []
+        for i in range(0, len(objlist)):
+            objJsonList.append(self.obj_file_info(objlist[i]))
+        fileModifyList = []
+        for fileInfo in fileJsonList:
+            num = objlist.index(fileInfo['hash'])
+            if fileInfo['time'] != objJsonList[num]['time']:
+                fileModifyList.append(fileInfo)
+                fileJsonList.remove(fileInfo)
+                objJsonList.remove(objJsonList[num])
+        fileAddList = fileJsonList
+        fileDelList = objJsonList
         for item in filelist:
             print(item)
             print(os.path.getctime(item), time.ctime(os.path.getctime(item)))
